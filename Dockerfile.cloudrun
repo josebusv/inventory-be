@@ -14,7 +14,11 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copia el resto del código al contenedor
-COPY . .
+COPY ./app /app/app
+COPY ./alembic /app/alembic
+COPY ./*.py /app/
+COPY ./*.ini /app/
+COPY ./*.sh /app/
 
 # Crear usuario no root para seguridad
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app

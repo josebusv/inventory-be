@@ -12,11 +12,19 @@ echo "  - POSTGRES_DB: $POSTGRES_DB"
 echo "  - PORT: $PORT"
 
 # NO esperar conexión para Cloud SQL (usa socket Unix)
+
 echo "🔌 Usando Cloud SQL socket Unix, omitiendo wait_for_postgres"
 
-# Ejecutar migraciones de Alembic
-echo "🔄 Ejecutando migraciones..."
-alembic upgrade head
+# NOTA: Las migraciones de la base de datos (Alembic) deben ejecutarse como un
+# paso separado en tu proceso de CI/CD antes de desplegar una nueva versión.
+# Ejecutarlas aquí puede causar condiciones de carrera en entornos con autoescalado.
+#
+# Ejemplo en Cloud Build:
+#   - name: 'gcr.io/google-appengine/exec-wrapper'
+#     args:
+#       - '-i', 'gcr.io/$PROJECT_ID/inventory-be-migrations',
+#       - '-e', 'INSTANCE_CONNECTION_NAME=${_INSTANCE_CONNECTION_NAME}',
+#       - '--', 'alembic', 'upgrade', 'head'
 
 # Iniciar el servidor
 echo "🌟 Iniciando servidor FastAPI..."
