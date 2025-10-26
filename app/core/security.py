@@ -13,6 +13,9 @@ def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
 def hash_password(password):
+    # Limitar la contraseña a 72 bytes para evitar el error de bcrypt
+    if len(password.encode('utf-8')) > 72:
+        password = password[:72]
     return pwd_context.hash(password)
 
 def create_access_token(data: dict, expires_delta: timedelta = None):

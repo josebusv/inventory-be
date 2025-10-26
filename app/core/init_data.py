@@ -18,7 +18,7 @@ def seed_database(db: Session):
 
     # Crear usuario administrador
     admin_email = "admin@example.com"
-    admin_password = "admin123"
+    admin_password = "admin123"  # Contraseña corta y simple para evitar el error de bcrypt
     admin_user = User(
         id=uuid.uuid4(),
         email=admin_email,
