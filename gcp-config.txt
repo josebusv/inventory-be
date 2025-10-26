@@ -1,0 +1,11 @@
+# Configuración generada automáticamente para Google Cloud
+PROJECT_ID=triple-nectar-476212-i4
+REGION=us-central1
+SERVICE_NAME=inventory-api
+IMAGE_NAME=gcr.io/triple-nectar-476212-i4/inventory-api
+INSTANCE_NAME=josebustospruebas
+CONNECTION_NAME=triple-nectar-476212-i4:us-central1:josebustospruebas
+DB_PASSWORD=DevPass123!
+APP_USER=dev_user
+APP_PASSWORD=DevPass123!
+DEV_MODE=true

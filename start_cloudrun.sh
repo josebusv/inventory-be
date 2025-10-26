@@ -18,8 +18,10 @@ echo "  - PORT: $PORT"
 
 # Esperar a que la base de datos esté disponible (solo para development/testing)
 if [ "$POSTGRES_HOST" != "/cloudsql/"* ]; then
-    echo "⏳ Esperando conexión a base de datos..."
+    echo "⏳ Esperando conexión a base de datos TCP..."
     python wait_for_postgres.py
+else
+    echo "🔌 Usando conexión Cloud SQL socket Unix, omitiendo wait_for_postgres"
 fi
 
 # Ejecutar migraciones de Alembic
