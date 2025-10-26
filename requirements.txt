@@ -6,8 +6,8 @@ pydantic[email]
 pydantic[dotenv]
 pydantic-settings
 alembic
-passlib[bcrypt]
-python-jose[cryptography]
+bcrypt==4.1.3
+python-jose[cryptography]==3.3.0
 asyncpg
 psycopg2-binary
 greenlet
