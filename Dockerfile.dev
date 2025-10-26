@@ -1,0 +1,42 @@
+# Dockerfile optimizado para DESARROLLO en Google Cloud Run
+# Imagen más ligera para reducir costos de build y storage
+FROM python:3.13-slim
+
+# Instalar solo dependencias esenciales
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Establece el directorio de trabajo
+WORKDIR /app
+
+# Optimización: copiar solo requirements primero para cache de layers
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar código de aplicación
+COPY app/ ./app/
+COPY alembic/ ./alembic/
+COPY alembic.ini ./
+COPY wait_for_postgres.py ./
+COPY start_cloudrun.sh ./
+
+# Crear usuario no root para seguridad (desarrollo)
+RUN useradd -m -u 1000 devuser && chown -R devuser:devuser /app
+USER devuser
+
+# Variables de entorno para desarrollo
+ENV PYTHONPATH=/app
+ENV PORT=8080
+ENV PYTHONUNBUFFERED=1
+
+# Puerto dinámico de Cloud Run
+EXPOSE 8080
+
+# Hacer script ejecutable
+USER root
+RUN chmod +x start_cloudrun.sh
+USER devuser
+
+# Comando optimizado para desarrollo
+CMD ["./start_cloudrun.sh"]
