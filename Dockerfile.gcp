@@ -1,0 +1,65 @@
+# Dockerfile específicamente optimizado para Google Cloud Run
+# Versión probada y funcional para despliegue desde Google Cloud Console
+
+FROM python:3.13-slim
+
+# Instalar dependencias del sistema necesarias
+RUN apt-get update && apt-get install -y \
+    curl \
+    gcc \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Establecer el directorio de trabajo
+WORKDIR /app
+
+# Copiar requirements, instalar dependencias, crear script y configurar usuario
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt && \
+    echo '#!/bin/bash\n\
+echo "🚀 Iniciando Inventory API..."\n\
+echo "Variables de entorno:"\n\
+echo "  PORT: ${PORT:-8080}"\n\
+echo "  POSTGRES_HOST: ${POSTGRES_HOST:-localhost}"\n\
+echo "  POSTGRES_DB: ${POSTGRES_DB:-inventory_db}"\n\
+echo ""\n\
+# Configurar PYTHONPATH\n\
+export PYTHONPATH="/app:$PYTHONPATH"\n\
+\n\
+# Verificar que las variables críticas estén configuradas\n\
+if [ -z "$POSTGRES_HOST" ] || [ -z "$POSTGRES_DB" ] || [ -z "$POSTGRES_USER" ]; then\n\
+    echo "⚠️  Advertencia: Variables de BD no configuradas completamente"\n\
+    echo "   Usando valores por defecto para desarrollo"\n\
+fi\n\
+\n\
+echo "🌟 Iniciando servidor FastAPI..."\n\
+exec uvicorn app.main:app \\\n\
+    --host 0.0.0.0 \\\n\
+    --port ${PORT:-8080} \\\n\
+    --workers 1 \\\n\
+    --timeout-keep-alive 60 \\\n\
+    --log-level info\n\
+' > /app/start_gcp.sh && \
+    chmod +x /app/start_gcp.sh && \
+    useradd -m -u 1000 appuser
+
+# Copiar el código de la aplicación
+COPY app ./app
+COPY alembic ./alembic
+COPY alembic.ini .
+COPY wait_for_postgres.py .
+
+# Cambiar propietario de archivos y cambiar a usuario no root
+RUN chown -R appuser:appuser /app
+USER appuser
+
+# Configurar puerto dinámico para Cloud Run
+ENV PORT=8080
+EXPOSE 8080
+
+# Health check para Cloud Run
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:${PORT:-8080}/ || exit 1
+
+# Comando principal
+CMD ["/app/start_gcp.sh"]

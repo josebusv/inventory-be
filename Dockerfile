@@ -1,6 +1,12 @@
 # Usa una imagen base de Python
 FROM python:3.13-slim
 
+# Instalar dependencias del sistema necesarias para Cloud Run
+RUN apt-get update && apt-get install -y \
+    gcc \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
 # Establece el directorio de trabajo
 WORKDIR /app
 
@@ -11,8 +17,19 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copia el resto del código al contenedor
 COPY . .
 
-# Expone el puerto en el que la aplicación escucha
-EXPOSE 8000
+# Crear usuario no root y hacer scripts ejecutables en una sola capa
+RUN chmod +x start.sh && \
+    useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app
 
-# Comando para ejecutar migraciones y precargar datos antes de iniciar la app
-CMD ["sh", "-c", "python wait_for_postgres.py && alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+USER appuser
+
+# Cloud Run asigna dinámicamente el puerto a través de la variable PORT
+# Por defecto usa 8080, pero puede cambiar
+ENV PORT=8080
+EXPOSE 8080
+
+# Comando optimizado para Cloud Run usando script de inicio
+# NOTA: Las migraciones deben ejecutarse por separado antes del despliegue
+# para evitar condiciones de carrera en entornos con autoescalado
+CMD ["./start.sh"]
