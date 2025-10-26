@@ -209,6 +209,10 @@ alembic downgrade -1
 
 ## ☁️ Despliegue en Google Cloud Run
 
+> 📖 **Guías de despliegue disponibles:**
+> - **Línea de comandos**: Sigue esta sección
+> - **Interfaz web**: Ver [MANUAL_DEPLOYMENT.md](MANUAL_DEPLOYMENT.md) para despliegue paso a paso desde la consola web
+
 ### Prerrequisitos
 
 1. **Google Cloud CLI** instalado y configurado
