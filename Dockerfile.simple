@@ -1,0 +1,31 @@
+# Dockerfile simplificado para diagnostico
+FROM python:3.13-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY app/ ./app/
+COPY alembic/ ./alembic/
+COPY alembic.ini ./
+COPY start_simple.sh ./
+
+RUN useradd -m -u 1000 devuser && chown -R devuser:devuser /app
+USER devuser
+
+ENV PYTHONPATH=/app
+ENV PORT=8080
+ENV PYTHONUNBUFFERED=1
+
+EXPOSE 8080
+
+USER root
+RUN chmod +x start_simple.sh
+USER devuser
+
+CMD ["./start_simple.sh"]
